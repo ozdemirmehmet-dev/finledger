@@ -15,4 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index']);
     Route::post('/invoices', [\App\Http\Controllers\InvoiceController::class, 'store']);
+
+    Route::post('/receipts', [\App\Http\Controllers\ReceiptController::class, 'store']);
+    Route::get('/receipts/{id}/status', [\App\Http\Controllers\ReceiptController::class, 'status']);
 });
