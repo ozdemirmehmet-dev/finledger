@@ -12,4 +12,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::post('/logout', [\App\Http\Controllers\Auth\LoginController::class, 'destroy']);
+
+    Route::get('/invoices', [\App\Http\Controllers\InvoiceController::class, 'index']);
+    Route::post('/invoices', [\App\Http\Controllers\InvoiceController::class, 'store']);
 });

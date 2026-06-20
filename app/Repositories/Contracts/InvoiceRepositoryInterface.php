@@ -13,6 +13,8 @@ interface InvoiceRepositoryInterface
 
     public function create(array $data): Invoice;
 
+    public function createWithItems(array $invoiceData, array $items): Invoice;
+
     public function update(int $id, array $data): Invoice;
 
     public function delete(int $id): bool;

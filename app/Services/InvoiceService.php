@@ -20,6 +20,17 @@ class InvoiceService implements InvoiceServiceInterface
 
     public function createInvoice(array $data): Invoice
     {
-        return $this->invoiceRepository->create($data);
+        $items = array_map(function (array $item): array {
+            $item['subtotal'] = $item['quantity'] * $item['unit_price'];
+
+            return $item;
+        }, $data['items']);
+
+        $invoiceData = array_merge(
+            collect($data)->except('items')->all(),
+            ['total_amount' => array_sum(array_column($items, 'subtotal'))],
+        );
+
+        return $this->invoiceRepository->createWithItems($invoiceData, $items);
     }
 }
