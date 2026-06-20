@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Adapters\Tax\Contracts\TaxCalculatorInterface;
+use App\Adapters\Tax\TurkeyTaxAdapter;
+use App\Adapters\Tax\UKTaxAdapter;
+use App\Adapters\Tax\USTaxAdapter;
 use App\Repositories\Contracts\InvoiceRepositoryInterface;
 use App\Repositories\EloquentInvoiceRepository;
 use App\Services\Contracts\InvoiceServiceInterface;
@@ -14,6 +18,16 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(InvoiceRepositoryInterface::class, EloquentInvoiceRepository::class);
         $this->app->bind(InvoiceServiceInterface::class, InvoiceService::class);
+
+        $this->app->bind(TaxCalculatorInterface::class, function (): TaxCalculatorInterface {
+            $country = auth()->user()?->company?->country ?? 'US';
+
+            return match ($country) {
+                'TR'    => new TurkeyTaxAdapter(),
+                'UK'    => new UKTaxAdapter(),
+                default => new USTaxAdapter(),
+            };
+        });
     }
 
     public function boot(): void
