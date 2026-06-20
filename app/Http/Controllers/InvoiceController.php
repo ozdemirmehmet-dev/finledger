@@ -15,19 +15,27 @@ class InvoiceController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $companyId = $request->user()->company->id;
+        $company = $request->user()->company;
 
-        $invoices = $this->invoiceService->getCompanyInvoices($companyId);
+        if (! $company) {
+            return response()->json(['message' => 'No company associated with this account.'], 422);
+        }
+
+        $invoices = $this->invoiceService->getCompanyInvoices($company->id);
 
         return response()->json($invoices);
     }
 
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
-        $companyId = $request->user()->company->id;
+        $company = $request->user()->company;
+
+        if (! $company) {
+            return response()->json(['message' => 'No company associated with this account.'], 422);
+        }
 
         $invoice = $this->invoiceService->createInvoice(
-            array_merge($request->validated(), ['company_id' => $companyId])
+            array_merge($request->validated(), ['company_id' => $company->id])
         );
 
         return response()->json($invoice, 201);

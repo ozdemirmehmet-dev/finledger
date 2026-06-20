@@ -17,10 +17,16 @@ class ReceiptController extends Controller
 
     public function store(StoreReceiptRequest $request): JsonResponse
     {
+        $company = $request->user()->company;
+
+        if (! $company) {
+            return response()->json(['message' => 'No company associated with this account.'], 422);
+        }
+
         $path = $request->file('receipt')->store('receipts');
 
         $receipt = Receipt::create([
-            'company_id' => $request->user()->company->id,
+            'company_id' => $company->id,
             'file_path'  => $path,
         ]);
 
@@ -31,9 +37,15 @@ class ReceiptController extends Controller
 
     public function status(Request $request, int $id): JsonResponse
     {
+        $company = $request->user()->company;
+
+        if (! $company) {
+            return response()->json(['message' => 'No company associated with this account.'], 422);
+        }
+
         $receipt = $this->receiptRepository->findById($id);
 
-        if (! $receipt || $receipt->company_id !== $request->user()->company->id) {
+        if (! $receipt || $receipt->company_id !== $company->id) {
             return response()->json(['message' => 'Receipt not found.'], 404);
         }
 
