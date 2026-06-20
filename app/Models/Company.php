@@ -24,4 +24,9 @@ class Company extends Model
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(Receipt::class);
+    }
 }
