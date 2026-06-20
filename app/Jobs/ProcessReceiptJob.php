@@ -31,7 +31,7 @@ class ProcessReceiptJob implements ShouldQueue
 
         // Simulate OCR extraction
         $extractedAmount = round(fake()->randomFloat(2, 100, 5000), 2);
-        $extractedDate   = now()->toDate();
+        $extractedDate   = now();
 
         // Resolve the correct tax adapter for this company's country at job runtime
         $country = $this->receipt->company->country;
