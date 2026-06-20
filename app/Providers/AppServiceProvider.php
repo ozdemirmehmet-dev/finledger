@@ -12,6 +12,7 @@ use App\Repositories\EloquentInvoiceRepository;
 use App\Repositories\EloquentReceiptRepository;
 use App\Services\Contracts\InvoiceServiceInterface;
 use App\Services\InvoiceService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,11 +29,18 @@ class AppServiceProvider extends ServiceProvider
                 ? $app->make('tax.country')
                 : (auth()->user()?->company?->country ?? 'US');
 
-            return match ($country) {
+            $adapter = match ($country) {
                 'TR'    => new TurkeyTaxAdapter(),
                 'UK'    => new UKTaxAdapter(),
                 default => new USTaxAdapter(),
             };
+
+            Log::channel('daily')->debug('Tax adapter resolved', [
+                'country' => $country,
+                'adapter' => $adapter::class,
+            ]);
+
+            return $adapter;
         });
     }
 

@@ -7,6 +7,7 @@ use App\Models\Receipt;
 use App\Repositories\Contracts\ReceiptRepositoryInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 
 class ProcessReceiptJob implements ShouldQueue
 {
@@ -20,6 +21,12 @@ class ProcessReceiptJob implements ShouldQueue
 
     public function handle(ReceiptRepositoryInterface $receiptRepository): void
     {
+        Log::channel('queue')->info('ProcessReceiptJob started', [
+            'receipt_id' => $this->receipt->id,
+            'company_id' => $this->receipt->company_id,
+            'attempt'    => $this->attempts(),
+        ]);
+
         $receiptRepository->updateStatus($this->receipt->id, 'processing');
 
         // Simulate OCR extraction
@@ -38,13 +45,26 @@ class ProcessReceiptJob implements ShouldQueue
             default => 'standard',
         };
 
-        $taxCalculator->calculate($extractedAmount, $defaultCategory);
+        $taxAmount = $taxCalculator->calculate($extractedAmount, $defaultCategory);
 
         $receiptRepository->saveExtracted($this->receipt->id, $extractedAmount, $extractedDate);
+
+        Log::channel('queue')->info('ProcessReceiptJob completed', [
+            'receipt_id'       => $this->receipt->id,
+            'extracted_amount' => $extractedAmount,
+            'tax_amount'       => $taxAmount,
+            'country'          => $country,
+        ]);
     }
 
     public function failed(\Throwable $e): void
     {
         app(ReceiptRepositoryInterface::class)->updateStatus($this->receipt->id, 'failed');
+
+        Log::channel('queue')->error('ProcessReceiptJob failed', [
+            'receipt_id' => $this->receipt->id,
+            'error'      => $e->getMessage(),
+            'attempt'    => $this->attempts(),
+        ]);
     }
 }

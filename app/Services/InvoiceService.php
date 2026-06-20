@@ -6,6 +6,7 @@ use App\Models\Invoice;
 use App\Repositories\Contracts\InvoiceRepositoryInterface;
 use App\Services\Contracts\InvoiceServiceInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceService implements InvoiceServiceInterface
 {
@@ -31,6 +32,16 @@ class InvoiceService implements InvoiceServiceInterface
             ['total_amount' => array_sum(array_column($items, 'subtotal'))],
         );
 
-        return $this->invoiceRepository->createWithItems($invoiceData, $items);
+        $invoice = $this->invoiceRepository->createWithItems($invoiceData, $items);
+
+        Log::channel('audit')->info('Invoice created', [
+            'invoice_id'   => $invoice->id,
+            'company_id'   => $invoice->company_id,
+            'total_amount' => $invoice->total_amount,
+            'currency'     => $invoice->currency,
+            'item_count'   => count($items),
+        ]);
+
+        return $invoice;
     }
 }
